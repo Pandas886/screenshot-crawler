@@ -17,7 +17,7 @@ sudo cp weiruanyahei.ttf /usr/share/fonts/chinese/
 docker build -t screenshot-crawler .
 
 运行命令：
-docker run -d -p 7860:7860 --name screenshot screenshot
+docker run -d -p 7860:7860 --name screenshot screenshot-crawler
 
 
 推送docker：
