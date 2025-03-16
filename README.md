@@ -12,7 +12,12 @@ sudo cp weiruanyahei.ttf /usr/share/fonts/chinese/
 
 
 构建命令：
-docker build -t tap4-ai-crawler .
+docker build -t screenshot-crawler .
 
 运行命令：
-docker run -d -p 7860:7860 --name tap4-ai-crawler tap4-ai-crawler
+docker run -d -p 7860:7860 --name screenshot screenshot
+
+
+推送docker：
+docker tag screenshot-crawler peterpoker/screenshot-crawler
+docker push peterpoker/screenshot-crawler
