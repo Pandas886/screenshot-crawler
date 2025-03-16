@@ -14,7 +14,8 @@ async def capture_and_upload(url):
             try:
                 image_url = await crawler.capture_screenshot(url)
                 if image_url:
-                    return image_url, image_url
+                    # 直接返回远程图片URL用于显示
+                    return image_url, gr.update(value=image_url)
                 else:
                     if retry < max_retries - 1:
                         await asyncio.sleep(3)
