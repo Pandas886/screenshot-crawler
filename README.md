@@ -1,5 +1,12 @@
 # 上传网址返回截图照片地址
 
+直接使用
+```angular2html
+docker pull xxx.cloudeon.top/peterpoker/screenshot-crawler
+
+docker run -d -p 7860:7860 --name screenshot xxx.cloudeon.top/peterpoker/screenshot-crawler
+```
+
 必须安装依赖和字体
 ```
 sudo apt-get update -y
