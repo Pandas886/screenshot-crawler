@@ -1,0 +1,12 @@
+image:
+  file: .gitpod.Dockerfile
+
+ports:
+  - port: 7860
+    onOpen: open-preview
+
+tasks:
+  - init: |
+      pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+      pip install -r requirements.txt
+    command: python gradio_app.py
