@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import logging
-from util.common_util import CommonUtil
+from common_util import CommonUtil
 
 # 设置日志记录
 logging.basicConfig(
