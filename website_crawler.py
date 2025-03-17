@@ -4,6 +4,12 @@ import random
 import asyncio
 import aiohttp
 from pyppeteer import launch
+from bs4 import BeautifulSoup
+from common_util import CommonUtil
+from llm_util import LLMUtil
+
+llm = LLMUtil()
+util = CommonUtil()
 
 # 设置日志记录
 logging.basicConfig(
@@ -68,8 +74,8 @@ class WebsitCrawler:
                     return False
         return False
             
-    # 爬取指定URL网页并保存截图
-    async def capture_screenshot(self, url):
+    # 爬取指定URL网页内容并保存截图
+    async def capture_screenshot(self, url, tags=None, languages=None):
         try:
             # 记录程序开始时间
             start_time = int(time.time())
@@ -115,11 +121,68 @@ class WebsitCrawler:
 
             logger.info(f"截图已保存到: {screenshot_path}")
             await page.close()
+            # 获取网页内容
+            origin_content = await page.content()
+            soup = BeautifulSoup(origin_content, 'html.parser')
+
+            # 通过标签名提取内容
+            title = soup.title.string.strip() if soup.title else ''
+
+            # 根据url提取域名生成name
+            name = util.get_name_by_url(url)
+
+            # 获取网页描述
+            description = ''
+            meta_description = soup.find('meta', attrs={'name': 'description'})
+            if meta_description:
+                description = meta_description['content'].strip()
+
+            if not description:
+                meta_description = soup.find('meta', attrs={'property': 'og:description'})
+                description = meta_description['content'].strip() if meta_description else ''
+
+            # 抓取整个网页内容
+            content = soup.get_text()
+
+            # 使用llm工具处理content
+            detail = llm.process_detail(content)
+
             # 上传截图到图床
-            image_url = await self.upload_image(screenshot_path)
-            if image_url:
-                logger.info(f"图片已上传到图床，访问地址: {image_url}")
-            return image_url
+            screenshot_key = await self.upload_image(screenshot_path)
+            if screenshot_key:
+                logger.info(f"图片已上传到图床，访问地址: {screenshot_key}")
+
+            # 如果tags为非空数组，则使用llm工具处理tags
+            processed_tags = None
+            if tags and detail:
+                processed_tags = llm.process_tags('tag_list is:' + ','.join(tags) + '. content is: ' + detail)
+
+            # 循环languages数组，使用llm工具生成各种语言
+            processed_languages = []
+            if languages:
+                for language in languages:
+                    logger.info(f"正在处理{url}站点，生成{language}语言")
+                    processed_title = llm.process_language(language, title)
+                    processed_description = llm.process_language(language, description)
+                    processed_detail = llm.process_language(language, detail)
+                    processed_languages.append({
+                        'language': language,
+                        'title': processed_title,
+                        'description': processed_description,
+                        'detail': processed_detail
+                    })
+
+            return {
+                'name': name,
+                'url': url,
+                'title': title,
+                'description': description,
+                'detail': detail,
+                'screenshot_data': screenshot_key,
+                'screenshot_thumbnail_data': screenshot_key,  # 使用同一个图片URL
+                'tags': processed_tags,
+                'languages': processed_languages,
+            }
 
         except Exception as e:
             logger.error(f"处理{url}站点异常，错误信息: {e}")
