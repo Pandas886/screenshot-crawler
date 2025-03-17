@@ -128,4 +128,14 @@ with gr.Blocks() as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", share=True)
+    from dotenv import load_dotenv
+    import os
+    
+    # 加载.env文件中的环境变量
+    load_dotenv()
+    
+    # 从环境变量中获取认证信息
+    username = os.getenv('GRADIO_USERNAME', 'admin')
+    password = os.getenv('GRADIO_PASSWORD', 'admin')
+    
+    demo.launch(server_name="0.0.0.0", share=True, auth=(username, password))
