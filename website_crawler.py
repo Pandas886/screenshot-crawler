@@ -182,13 +182,6 @@ class WebsitCrawler:
                 'tags': processed_tags,
                 'languages': processed_languages,
             }
-        finally:
-            if page:
-                try:
-                    await page.close()
-                except Exception as e:
-                    logger.error(f"关闭页面时出错: {e}")
-
         except Exception as e:
             logger.error(f"处理{url}站点异常，错误信息: {e}")
             # 如果浏览器意外关闭，将browser设为None以便下次重新创建
@@ -196,6 +189,11 @@ class WebsitCrawler:
                 self.browser = None
             return None
         finally:
+            if page:
+                try:
+                    await page.close()
+                except Exception as e:
+                    logger.error(f"关闭页面时出错: {e}")
             # 计算程序执行时间
             execution_time = int(time.time()) - start_time
             # 输出程序执行时间
