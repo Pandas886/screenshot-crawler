@@ -6,7 +6,7 @@ async def main():
     crawler = WebsitCrawler()
     
     # 测试URL
-    test_url = 'www.github.com'
+    test_url = 'https://github.com/Dataherald/dataherald'
     
     # 测试标签和语言
     test_tags = ['technology', 'development', 'git']
