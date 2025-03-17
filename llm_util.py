@@ -1,8 +1,7 @@
 import os
 from dotenv import load_dotenv
-from groq import Groq
+from openai import OpenAI
 import logging
-from transformers import LlamaTokenizer
 from util.common_util import CommonUtil
 
 # 设置日志记录
@@ -12,21 +11,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 util = CommonUtil()
-# 初始化LLaMA模型的Tokenizer
-tokenizer = LlamaTokenizer.from_pretrained("huggyllama/llama-65b")
 
 class LLMUtil:
     def __init__(self):
         load_dotenv()
-        self.groq_api_key = os.getenv('GROQ_API_KEY')
-        logger.info(f"Groq API Key:{self.groq_api_key}")
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.openai_base_url = os.getenv('OPENAI_BASE_URL')
+        logger.info(f"OpenAI Base URL:{self.openai_base_url}")
         self.detail_sys_prompt = os.getenv('DETAIL_SYS_PROMPT')
         self.tag_selector_sys_prompt = os.getenv('TAG_SELECTOR_SYS_PROMPT')
         self.language_sys_prompt = os.getenv('LANGUAGE_SYS_PROMPT')
-        self.groq_model = os.getenv('GROQ_MODEL')
-        self.groq_max_tokens = int(os.getenv('GROQ_MAX_TOKENS', 5000))
-        self.client = Groq(
-            api_key=self.groq_api_key
+        self.openai_model = os.getenv('OPENAI_MODEL')
+        self.openai_max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', 5000))
+        self.client = OpenAI(
+            api_key=self.openai_api_key,
+            base_url=self.openai_base_url
         )
 
     def process_detail(self, user_prompt):
@@ -67,11 +66,9 @@ class LLMUtil:
 
         logger.info("LLM正在处理")
         try:
-            tokens = tokenizer.encode(user_prompt)
-            if len(tokens) > self.groq_max_tokens:
-                logger.info(f"用户输入长度超过{self.groq_max_tokens}，进行截取")
-                truncated_tokens = tokens[:self.groq_max_tokens]
-                user_prompt = tokenizer.decode(truncated_tokens)
+            if len(user_prompt) > self.openai_max_tokens:
+                logger.info(f"用户输入长度超过{self.openai_max_tokens}，进行截取")
+                user_prompt = user_prompt[:self.openai_max_tokens]
 
             chat_completion = self.client.chat.completions.create(
                 messages=[
@@ -84,7 +81,7 @@ class LLMUtil:
                         "content": user_prompt,
                     }
                 ],
-                model=self.groq_model,
+                model=self.openai_model,
                 temperature=0.2,
             )
             if chat_completion.choices[0] and chat_completion.choices[0].message:
