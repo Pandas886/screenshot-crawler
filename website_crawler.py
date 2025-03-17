@@ -76,7 +76,7 @@ class WebsitCrawler:
         return False
             
     # 爬取指定URL网页内容并保存截图
-    async def capture_screenshot(self, url, tags=None, languages=None):
+    async def capture_screenshot(self, url, tags=None, languages=None, use_llm=True):
         try:
             # 记录程序开始时间
             start_time = int(time.time())
@@ -145,7 +145,7 @@ class WebsitCrawler:
             content = soup.get_text()
 
             # 使用llm工具处理content
-            detail = llm.process_detail(content)
+            detail = llm.process_detail(content) if use_llm else content
 
             # 上传截图到图床
             screenshot_key = await self.upload_image(screenshot_path)
@@ -154,12 +154,12 @@ class WebsitCrawler:
 
             # 如果tags为非空数组，则使用llm工具处理tags
             processed_tags = None
-            if tags and detail:
+            if tags and detail and use_llm:
                 processed_tags = llm.process_tags('tag_list is:' + ','.join(tags) + '. content is: ' + detail)
 
             # 循环languages数组，使用llm工具生成各种语言
             processed_languages = []
-            if languages:
+            if languages and use_llm:
                 for language in languages:
                     logger.info(f"正在处理{url}站点，生成{language}语言")
                     processed_title = llm.process_language(language, title)

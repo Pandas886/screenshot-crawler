@@ -5,14 +5,14 @@ from website_crawler import WebsitCrawler
 # 创建爬虫实例
 crawler = WebsitCrawler()
 
-async def capture_and_upload(url, tags=None, languages=None):
+async def capture_and_upload(url, tags=None, languages=None, use_llm=True):
     """处理URL输入，进行截图并上传"""
     try:
         # 添加重试机制
         max_retries = 3
         for retry in range(max_retries):
             try:
-                result = await crawler.capture_screenshot(url, tags, languages)
+                result = await crawler.capture_screenshot(url, tags, languages, use_llm)
                 if result:
                     # 返回所有爬取结果
                     return (
@@ -42,13 +42,13 @@ async def capture_and_upload(url, tags=None, languages=None):
         if crawler.browser:
             await crawler.browser.close()
 
-def process_url(url, tags, languages):
+def process_url(url, tags, languages, use_llm):
     """同步包装异步函数"""
     # 处理标签输入
     tag_list = [tag.strip() for tag in tags.split(",")] if tags else []
     # 处理语言输入
     language_list = languages if languages else []
-    return asyncio.run(capture_and_upload(url, tag_list, language_list))
+    return asyncio.run(capture_and_upload(url, tag_list, language_list, use_llm))
 
 # 创建Gradio界面
 with gr.Blocks() as demo:
@@ -70,6 +70,11 @@ with gr.Blocks() as demo:
                 choices=["en", "zh", "ja", "ko", "fr", "de", "es", "ru"],
                 multiselect=True,
                 value=["zh"]
+            )
+            use_llm_input = gr.Checkbox(
+                label="使用大模型",
+                value=True,
+                info="开启后将使用大模型处理网页内容、标签和多语言生成"
             )
         with gr.Column(scale=1):
             submit_btn = gr.Button("开始爬取", variant="primary")
@@ -113,7 +118,7 @@ with gr.Blocks() as demo:
     # 绑定提交按钮事件
     submit_btn.click(
         fn=process_url,
-        inputs=[url_input, tags_input, languages_input],
+        inputs=[url_input, tags_input, languages_input, use_llm_input],
         outputs=[
             name_output,
             url_output,
