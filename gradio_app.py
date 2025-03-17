@@ -5,14 +5,14 @@ from website_crawler import WebsitCrawler
 # 创建爬虫实例
 crawler = WebsitCrawler()
 
-async def capture_and_upload(url):
+async def capture_and_upload(url, tags=None, languages=None):
     """处理URL输入，进行截图并上传"""
     try:
         # 添加重试机制
         max_retries = 3
         for retry in range(max_retries):
             try:
-                result = await crawler.capture_screenshot(url)
+                result = await crawler.capture_screenshot(url, tags, languages)
                 if result:
                     # 返回所有爬取结果
                     return (
@@ -42,9 +42,13 @@ async def capture_and_upload(url):
         if crawler.browser:
             await crawler.browser.close()
 
-def process_url(url):
+def process_url(url, tags, languages):
     """同步包装异步函数"""
-    return asyncio.run(capture_and_upload(url))
+    # 处理标签输入
+    tag_list = [tag.strip() for tag in tags.split(",")] if tags else []
+    # 处理语言输入
+    language_list = languages if languages else []
+    return asyncio.run(capture_and_upload(url, tag_list, language_list))
 
 # 创建Gradio界面
 with gr.Blocks() as demo:
@@ -55,6 +59,17 @@ with gr.Blocks() as demo:
             url_input = gr.Textbox(
                 label="输入网站URL",
                 placeholder="请输入要爬取的网站URL（例如：www.example.com）"
+            )
+            tags_input = gr.Textbox(
+                label="输入标签",
+                placeholder="请输入标签，多个标签用逗号分隔（例如：技术,博客,开源）",
+                value="技术,美食"
+            )
+            languages_input = gr.Dropdown(
+                label="选择语言",
+                choices=["en", "zh", "ja", "ko", "fr", "de", "es", "ru"],
+                multiselect=True,
+                value=["zh"]
             )
         with gr.Column(scale=1):
             submit_btn = gr.Button("开始爬取", variant="primary")
@@ -98,7 +113,7 @@ with gr.Blocks() as demo:
     # 绑定提交按钮事件
     submit_btn.click(
         fn=process_url,
-        inputs=[url_input],
+        inputs=[url_input, tags_input, languages_input],
         outputs=[
             name_output,
             url_output,

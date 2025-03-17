@@ -7,6 +7,7 @@ from pyppeteer import launch
 from bs4 import BeautifulSoup
 from common_util import CommonUtil
 from llm_util import LLMUtil
+import os
 
 llm = LLMUtil()
 util = CommonUtil()
@@ -164,11 +165,14 @@ class WebsitCrawler:
                     processed_title = llm.process_language(language, title)
                     processed_description = llm.process_language(language, description)
                     processed_detail = llm.process_language(language, detail)
+                    # 生成摘要
+                    processed_summary = llm.process_language(language, llm.process_prompt(os.getenv('SUMMARY_SYS_PROMPT'), content))
                     processed_languages.append({
                         'language': language,
                         'title': processed_title,
                         'description': processed_description,
-                        'detail': processed_detail
+                        'detail': processed_detail,
+                        'summary': processed_summary
                     })
 
             return {
