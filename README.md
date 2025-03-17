@@ -1,6 +1,7 @@
 # Screenshot Crawler
 
 一个功能强大的网页截图和内容分析工具，支持网页截图、内容提取、多语言翻译和智能标签管理。
+![image](https://github.com/user-attachments/assets/ac610f91-7958-4287-9840-a072d153bbe1)
 
 ## 功能特点
 
