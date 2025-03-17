@@ -120,7 +120,6 @@ class WebsitCrawler:
             }})
 
             logger.info(f"截图已保存到: {screenshot_path}")
-            await page.close()
             # 获取网页内容
             origin_content = await page.content()
             soup = BeautifulSoup(origin_content, 'html.parser')
@@ -183,6 +182,12 @@ class WebsitCrawler:
                 'tags': processed_tags,
                 'languages': processed_languages,
             }
+        finally:
+            if page:
+                try:
+                    await page.close()
+                except Exception as e:
+                    logger.error(f"关闭页面时出错: {e}")
 
         except Exception as e:
             logger.error(f"处理{url}站点异常，错误信息: {e}")
